@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium 3D & AR Experience</title>
+    <title>3D Product Showcase</title>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Import model-viewer -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     
@@ -20,21 +20,33 @@
             align-items: center; 
             justify-content: center;
             min-height: 100vh; 
-            padding: 16px;
+            padding: 20px;
         }
 
-        .header {
+        /* --- Page Title Styling (Top) --- */
+        .page-title {
             text-align: center;
-            margin-bottom: 24px;
-            color: #1f2937;
+            margin-bottom: 32px;
+            color: #111827;
         }
 
-        .header h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
-        .header p { font-size: 14px; color: #6b7280; margin-top: 4px; }
+        .page-title h1 { 
+            font-size: 36px; 
+            font-weight: 700; 
+            letter-spacing: -1px; 
+            margin-bottom: 8px;
+        }
 
+        .page-title p { 
+            font-size: 16px; 
+            color: #6b7280; 
+            font-weight: 400;
+        }
+
+        /* --- Viewer Card --- */
         .viewer-card {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             height: 65vh;
             min-height: 450px;
             background: rgba(255, 255, 255, 0.7);
@@ -84,12 +96,14 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading-text { font-size: 14px; font-weight: 500; color: #4b5563; }
+        
+        /* Hides the overlay when the model is ready */
         model-viewer.model-loaded .loading-overlay { opacity: 0; }
 
-        /* UI Controls */
+        /* --- UI Controls (Toggle) --- */
         .controls-container {
             position: absolute;
-            bottom: 24px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.85);
@@ -134,68 +148,45 @@
 
         .ar-active .slider-pill { transform: translateX(100%); }
 
-        /* Format Support Upload Button */
-        .upload-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            z-index: 5;
-            transition: background 0.2s;
-        }
-        
-        .upload-btn:hover { background: #f9fafb; }
-
         .desktop-warning {
             position: absolute;
-            bottom: 85px;
+            bottom: 90px;
             left: 50%;
             transform: translateX(-50%);
             background: #1f2937;
             color: #fff;
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s;
             white-space: nowrap;
             z-index: 5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .show-warning { opacity: 1; }
 
+        /* Mobile Adjustments */
         @media (max-width: 600px) {
             .viewer-card { height: 75vh; border-radius: 16px; }
-            .header h1 { font-size: 20px; }
+            .page-title h1 { font-size: 28px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Interactive Product View</h1>
-        <p>Drag to rotate. Toggle AR on mobile.</p>
+    <!-- Sleek Page Title placed at the top -->
+    <div class="page-title">
+        <h1>Interactive Donut</h1>
+        <p>Drag to rotate. Toggle AR to view in your space.</p>
     </div>
 
+    <!-- 3D Viewer Card -->
     <div class="viewer-card" oncontextmenu="return false;">
         
-        <!-- Hidden input for file upload -->
-        <input type="file" id="file-input" accept=".glb,.gltf" style="display: none;">
-        
-        <button class="upload-btn" onclick="document.getElementById('file-input').click()">
-            + Load Custom Model
-        </button>
-
         <model-viewer 
             id="my-model"
             src="./Models/donut.glb" 
@@ -213,15 +204,15 @@
             shadow-softness="1"
             environment-image="neutral"
             exposure="1"
-            alt="An interactive 3D model">
+            alt="An interactive 3D model of a donut">
             
             <div slot="progress-bar" class="loading-overlay" id="loader">
                 <div class="spinner"></div>
-                <div class="loading-text">Loading 3D Engine...</div>
+                <div class="loading-text">Loading Model...</div>
             </div>
         </model-viewer>
 
-        <!-- UI Controls -->
+        <!-- Custom Slider UI -->
         <div class="controls-container" id="toggle-container">
             <div class="slider-pill"></div>
             <div class="toggle-btn active" id="btn-3d" onclick="setMode('3d')">3D View</div>
@@ -237,32 +228,13 @@
         const btn3d = document.getElementById('btn-3d');
         const btnAr = document.getElementById('btn-ar');
         const warning = document.getElementById('ar-warning');
-        const fileInput = document.getElementById('file-input');
-        const loader = document.getElementById('loader');
 
         // Fade out loader when model is ready
         modelViewer.addEventListener('load', () => {
             modelViewer.classList.add('model-loaded');
         });
 
-        // Handle Custom File Uploads
-        fileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                // Show loader again
-                modelViewer.classList.remove('model-loaded');
-                
-                // Create a local browser URL for the uploaded file
-                const objectURL = URL.createObjectURL(file);
-                
-                // Set the new source
-                modelViewer.src = objectURL;
-                
-                // Optional: clear the iOS source so it doesn't try to load the old donut in AR
-                modelViewer.removeAttribute('ios-src'); 
-            }
-        });
-
+        // Handle the slider logic
         function setMode(mode) {
             if (mode === 'ar') {
                 if (modelViewer.canActivateAR) {
@@ -281,6 +253,7 @@
             }
         }
 
+        // Return slider to 3D when AR is closed on mobile
         modelViewer.addEventListener('ar-status', (event) => {
             if (event.detail.status === 'not-presenting') {
                 setMode('3d');
