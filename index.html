@@ -53,12 +53,12 @@
             width: 100%; 
             height: 100%; 
             outline: none;
-            --poster-color: transparent; /* Removes default gray background while loading */
+            --poster-color: transparent; 
         }
 
         model-viewer::part(default-ar-button) { display: none; }
 
-        /* --- Custom Loading Screen --- */
+        /* Custom Loading Screen */
         .loading-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -83,13 +83,10 @@
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         .loading-text { font-size: 14px; font-weight: 500; color: #4b5563; }
-
-        /* Hide loader when model is ready */
         model-viewer.model-loaded .loading-overlay { opacity: 0; }
 
-        /* --- Custom Slider UI --- */
+        /* UI Controls */
         .controls-container {
             position: absolute;
             bottom: 24px;
@@ -137,6 +134,26 @@
 
         .ar-active .slider-pill { transform: translateX(100%); }
 
+        /* Format Support Upload Button */
+        .upload-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            z-index: 5;
+            transition: background 0.2s;
+        }
+        
+        .upload-btn:hover { background: #f9fafb; }
+
         .desktop-warning {
             position: absolute;
             bottom: 85px;
@@ -170,12 +187,19 @@
         <p>Drag to rotate. Toggle AR on mobile.</p>
     </div>
 
-    <div class="viewer-card" oncontextmenu="return false;"> <!-- Disables basic right-click -->
+    <div class="viewer-card" oncontextmenu="return false;">
         
+        <!-- Hidden input for file upload -->
+        <input type="file" id="file-input" accept=".glb,.gltf" style="display: none;">
+        
+        <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+            + Load Custom Model
+        </button>
+
         <model-viewer 
             id="my-model"
-            src="Models/donut.glb" 
-            ios-src="Models/donut.glb"
+            src="./Models/donut.glb" 
+            ios-src="./Models/donut.usdz"
             ar 
             ar-modes="webxr scene-viewer quick-look" 
             ar-scale="fixed" 
@@ -191,12 +215,10 @@
             exposure="1"
             alt="An interactive 3D model">
             
-            <!-- Custom Loading Overlay -->
-            <div slot="progress-bar" class="loading-overlay">
+            <div slot="progress-bar" class="loading-overlay" id="loader">
                 <div class="spinner"></div>
                 <div class="loading-text">Loading 3D Engine...</div>
             </div>
-
         </model-viewer>
 
         <!-- UI Controls -->
@@ -215,10 +237,30 @@
         const btn3d = document.getElementById('btn-3d');
         const btnAr = document.getElementById('btn-ar');
         const warning = document.getElementById('ar-warning');
+        const fileInput = document.getElementById('file-input');
+        const loader = document.getElementById('loader');
 
         // Fade out loader when model is ready
         modelViewer.addEventListener('load', () => {
             modelViewer.classList.add('model-loaded');
+        });
+
+        // Handle Custom File Uploads
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                // Show loader again
+                modelViewer.classList.remove('model-loaded');
+                
+                // Create a local browser URL for the uploaded file
+                const objectURL = URL.createObjectURL(file);
+                
+                // Set the new source
+                modelViewer.src = objectURL;
+                
+                // Optional: clear the iOS source so it doesn't try to load the old donut in AR
+                modelViewer.removeAttribute('ios-src'); 
+            }
         });
 
         function setMode(mode) {
