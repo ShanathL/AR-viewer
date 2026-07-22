@@ -5,73 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium 3D & AR Experience</title>
     
-    <!-- Import Google Fonts for a modern look -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <!-- Import the model-viewer web component -->
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Import model-viewer -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
         body { 
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
             display: flex; 
             flex-direction: column;
             align-items: center; 
             justify-content: center;
             min-height: 100vh; 
-            padding: 20px;
+            padding: 16px;
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #1f2937;
+        }
+
+        .header h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
+        .header p { font-size: 14px; color: #6b7280; margin-top: 4px; }
 
         .viewer-card {
             width: 100%;
-            max-width: 900px;
-            height: 70vh;
-            min-height: 500px;
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            max-width: 800px;
+            height: 65vh;
+            min-height: 450px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.06), 0 8px 16px rgba(0,0,0,0.03);
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        /* 3D Viewer Base */
         model-viewer { 
             width: 100%; 
             height: 100%; 
             outline: none;
+            --poster-color: transparent; /* Removes default gray background while loading */
         }
 
-        /* Hide the default AR button since we are building a custom slider */
-        model-viewer::part(default-ar-button) {
-            display: none;
+        model-viewer::part(default-ar-button) { display: none; }
+
+        /* --- Custom Loading Screen --- */
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.9);
+            z-index: 10;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
         }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .loading-text { font-size: 14px; font-weight: 500; color: #4b5563; }
+
+        /* Hide loader when model is ready */
+        model-viewer.model-loaded .loading-overlay { opacity: 0; }
 
         /* --- Custom Slider UI --- */
         .controls-container {
             position: absolute;
-            bottom: 30px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-radius: 30px;
             padding: 6px;
             display: flex;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            width: 220px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255, 255, 255, 1);
+            width: 240px;
+            z-index: 5;
         }
 
         .toggle-btn {
@@ -80,18 +113,15 @@
             text-align: center;
             font-weight: 600;
             font-size: 14px;
-            color: #555;
+            color: #6b7280;
             cursor: pointer;
             position: relative;
             z-index: 2;
             transition: color 0.3s ease;
         }
 
-        .toggle-btn.active {
-            color: #111;
-        }
+        .toggle-btn.active { color: #111827; }
 
-        /* The sliding pill background */
         .slider-pill {
             position: absolute;
             top: 6px;
@@ -100,44 +130,52 @@
             height: calc(100% - 12px);
             background: #ffffff;
             border-radius: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
             z-index: 1;
         }
 
-        /* Shift the slider when AR is active */
-        .ar-active .slider-pill {
-            transform: translateX(100%);
-        }
+        .ar-active .slider-pill { transform: translateX(100%); }
 
-        /* Desktop Warning Tooltip */
         .desktop-warning {
             position: absolute;
-            bottom: 90px;
+            bottom: 85px;
             left: 50%;
             transform: translateX(-50%);
-            background: #333;
+            background: #1f2937;
             color: #fff;
             padding: 8px 16px;
             border-radius: 8px;
             font-size: 13px;
+            font-weight: 500;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s;
+            white-space: nowrap;
+            z-index: 5;
         }
-        .show-warning {
-            opacity: 1;
+
+        .show-warning { opacity: 1; }
+
+        @media (max-width: 600px) {
+            .viewer-card { height: 75vh; border-radius: 16px; }
+            .header h1 { font-size: 20px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="viewer-card">
-        <!-- Model Viewer with locked scale and zoom disabled -->
+    <div class="header">
+        <h1>Interactive Product View</h1>
+        <p>Drag to rotate. Toggle AR on mobile.</p>
+    </div>
+
+    <div class="viewer-card" oncontextmenu="return false;"> <!-- Disables basic right-click -->
+        
         <model-viewer 
             id="my-model"
-            src="Models/donut.glb" 
-            ios-src="Models/donut.glb"
+            src="./models/x7f9a2p.glb" 
+            ios-src="./models/x7f9a2p.usdz"
             ar 
             ar-modes="webxr scene-viewer quick-look" 
             ar-scale="fixed" 
@@ -145,19 +183,30 @@
             disable-zoom
             auto-rotate
             rotation-per-second="30deg"
-            shadow-intensity="1"
+            interaction-prompt="auto"
+            interaction-prompt-style="basic"
+            shadow-intensity="1.5"
+            shadow-softness="1"
             environment-image="neutral"
+            exposure="1"
             alt="An interactive 3D model">
+            
+            <!-- Custom Loading Overlay -->
+            <div slot="progress-bar" class="loading-overlay">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading 3D Engine...</div>
+            </div>
+
         </model-viewer>
 
-        <!-- Custom Slider UI -->
+        <!-- UI Controls -->
         <div class="controls-container" id="toggle-container">
             <div class="slider-pill"></div>
             <div class="toggle-btn active" id="btn-3d" onclick="setMode('3d')">3D View</div>
             <div class="toggle-btn" id="btn-ar" onclick="setMode('ar')">AR View</div>
         </div>
         
-        <div class="desktop-warning" id="ar-warning">AR requires a mobile device</div>
+        <div class="desktop-warning" id="ar-warning">AR requires a smartphone or tablet</div>
     </div>
 
     <script>
@@ -167,34 +216,31 @@
         const btnAr = document.getElementById('btn-ar');
         const warning = document.getElementById('ar-warning');
 
+        // Fade out loader when model is ready
+        modelViewer.addEventListener('load', () => {
+            modelViewer.classList.add('model-loaded');
+        });
+
         function setMode(mode) {
             if (mode === 'ar') {
-                // Check if the device actually supports AR
                 if (modelViewer.canActivateAR) {
-                    // Visually slide the toggle
                     toggleContainer.classList.add('ar-active');
                     btn3d.classList.remove('active');
                     btnAr.classList.add('active');
-                    
-                    // Launch the native AR camera
                     modelViewer.activateAR();
                 } else {
-                    // Show warning on desktop/unsupported devices
                     warning.classList.add('show-warning');
                     setTimeout(() => warning.classList.remove('show-warning'), 3000);
                 }
             } else {
-                // Return to 3D UI State
                 toggleContainer.classList.remove('ar-active');
                 btnAr.classList.remove('active');
                 btn3d.classList.add('active');
             }
         }
 
-        // Listen for when the user closes the AR camera on their phone
         modelViewer.addEventListener('ar-status', (event) => {
             if (event.detail.status === 'not-presenting') {
-                // The user exited AR, slide the toggle back to 3D
                 setMode('3d');
             }
         });
