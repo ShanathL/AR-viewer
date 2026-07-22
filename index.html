@@ -3,94 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D & AR Viewer</title>
+    <title>Premium 3D & AR Experience</title>
     
+    <!-- Import Google Fonts for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <!-- Import the model-viewer web component -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
         body { 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f4f4f9; 
-            font-family: sans-serif;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
             display: flex; 
             flex-direction: column;
             align-items: center; 
             justify-content: center;
             min-height: 100vh; 
+            padding: 20px;
         }
 
-        .viewer-container {
+        .viewer-card {
             width: 100%;
-            max-width: 800px;
-            height: 60vh;
-            min-height: 400px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            overflow: hidden;
+            max-width: 900px;
+            height: 70vh;
+            min-height: 500px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
             position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* The actual 3D viewer element */
+        /* 3D Viewer Base */
         model-viewer { 
             width: 100%; 
             height: 100%; 
+            outline: none;
         }
 
-        /* Styling for the AR Button */
-        .ar-button {
-            background-color: #007bff;
-            color: white;
-            border-radius: 8px;
-            border: none;
-            position: absolute;
-            bottom: 16px;
-            right: 16px;
-            padding: 12px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: background-color 0.2s;
-        }
-
-        .ar-button:hover {
-            background-color: #0056b3;
-        }
-
-        /* Hide the button on devices that don't support AR */
+        /* Hide the default AR button since we are building a custom slider */
         model-viewer::part(default-ar-button) {
             display: none;
+        }
+
+        /* --- Custom Slider UI --- */
+        .controls-container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 30px;
+            padding: 6px;
+            display: flex;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            width: 220px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px 0;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            color: #111;
+        }
+
+        /* The sliding pill background */
+        .slider-pill {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            width: calc(50% - 6px);
+            height: calc(100% - 12px);
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 1;
+        }
+
+        /* Shift the slider when AR is active */
+        .ar-active .slider-pill {
+            transform: translateX(100%);
+        }
+
+        /* Desktop Warning Tooltip */
+        .desktop-warning {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .show-warning {
+            opacity: 1;
         }
     </style>
 </head>
 <body>
 
-    <div class="viewer-container">
-        <!-- 
-          src: The GLB file for Web and Android
-          ios-src: The USDZ file for Apple AR Quick Look
-          ar: Enables AR functionality
-          camera-controls: Allows user to spin and zoom the 3D model
-        -->
+    <div class="viewer-card">
+        <!-- Model Viewer with locked scale and zoom disabled -->
         <model-viewer 
-            src="Models/donut.glb" 
-            ios-src="Models/donut.glb"
+            id="my-model"
+            src="./models/x7f9a2p.glb" 
+            ios-src="./models/x7f9a2p.usdz"
             ar 
             ar-modes="webxr scene-viewer quick-look" 
+            ar-scale="fixed" 
             camera-controls 
+            disable-zoom
             auto-rotate
+            rotation-per-second="30deg"
             shadow-intensity="1"
+            environment-image="neutral"
             alt="An interactive 3D model">
-            
-            <!-- Custom AR Button -->
-            <button slot="ar-button" class="ar-button">
-                👁️ View in AR
-            </button>
         </model-viewer>
+
+        <!-- Custom Slider UI -->
+        <div class="controls-container" id="toggle-container">
+            <div class="slider-pill"></div>
+            <div class="toggle-btn active" id="btn-3d" onclick="setMode('3d')">3D View</div>
+            <div class="toggle-btn" id="btn-ar" onclick="setMode('ar')">AR View</div>
+        </div>
+        
+        <div class="desktop-warning" id="ar-warning">AR requires a mobile device</div>
     </div>
 
+    <script>
+        const modelViewer = document.getElementById('my-model');
+        const toggleContainer = document.getElementById('toggle-container');
+        const btn3d = document.getElementById('btn-3d');
+        const btnAr = document.getElementById('btn-ar');
+        const warning = document.getElementById('ar-warning');
+
+        function setMode(mode) {
+            if (mode === 'ar') {
+                // Check if the device actually supports AR
+                if (modelViewer.canActivateAR) {
+                    // Visually slide the toggle
+                    toggleContainer.classList.add('ar-active');
+                    btn3d.classList.remove('active');
+                    btnAr.classList.add('active');
+                    
+                    // Launch the native AR camera
+                    modelViewer.activateAR();
+                } else {
+                    // Show warning on desktop/unsupported devices
+                    warning.classList.add('show-warning');
+                    setTimeout(() => warning.classList.remove('show-warning'), 3000);
+                }
+            } else {
+                // Return to 3D UI State
+                toggleContainer.classList.remove('ar-active');
+                btnAr.classList.remove('active');
+                btn3d.classList.add('active');
+            }
+        }
+
+        // Listen for when the user closes the AR camera on their phone
+        modelViewer.addEventListener('ar-status', (event) => {
+            if (event.detail.status === 'not-presenting') {
+                // The user exited AR, slide the toggle back to 3D
+                setMode('3d');
+            }
+        });
+    </script>
 </body>
 </html>
