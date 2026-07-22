@@ -178,7 +178,7 @@
 </head>
 <body>
 
-    <!-- Sleek Page Title placed at the top -->
+    <!-- Sleek Page Title -->
     <div class="page-title">
         <h1>Interactive Donut</h1>
         <p>Drag to rotate. Toggle AR to view in your space.</p>
@@ -191,6 +191,10 @@
             id="my-model"
             src="./Models/donut.glb" 
             ios-src="./Models/donut.usdz"
+            
+            /* The new HDRI lighting attribute */
+            environment-image="./Environments/studio_lighting.hdr"
+            
             ar 
             ar-modes="webxr scene-viewer quick-look" 
             ar-scale="fixed" 
@@ -202,7 +206,6 @@
             interaction-prompt-style="basic"
             shadow-intensity="1.5"
             shadow-softness="1"
-            environment-image="neutral"
             exposure="1"
             alt="An interactive 3D model of a donut">
             
